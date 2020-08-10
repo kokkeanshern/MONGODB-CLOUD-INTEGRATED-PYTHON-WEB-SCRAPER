@@ -13,17 +13,17 @@ def get_cat_links():
 
     # Enables the programming to access cookies. Significantly improves scraping performance.
     chrome_options = Options()
-    chrome_options.add_argument("user-data-dir=C:/Users/Shern/AppData/Local/Google/Chrome/User Data")
+    chrome_options.add_argument("<path to Google Chrome user data directory>")
     # Initializes a webdriver for Google Chrome.
-    driver = webdriver.Chrome(executable_path='C:/Users/Shern/Downloads/chromedriver_win32/chromedriver.exe'
+    driver = webdriver.Chrome(executable_path='<path to Chrome driver executable>'
                               , options=chrome_options)
     # Access the supplied URL.
-    driver.get('https://www.freemalaysiatoday.com/')
+    driver.get('<path to news article main page>')
     # Scrapes the object identified by the supplied XPATH.
-    category_links = driver.find_elements_by_xpath('//*[@id="menu-header-menu-1"]/li[*]/ul/li[*]/a')
+    category_links = driver.find_elements_by_xpath('<object xpath>')
     cat_links = []
     for elem in category_links:
-        cat_links.append(elem.get_attribute('href'))
+        cat_links.append(elem.get_attribute('<attribute type>'))
     driver.quit()
     return cat_links
 
@@ -59,15 +59,14 @@ def get_valid_links(links):
             html.send_keys(Keys.END)
             print('looped')
             try:
-                load_more = driver.find_element_by_xpath('//*[@id="td-outer-wrap"]/div[4]/div/div/div[1]/div/div[*]/a')
+                load_more = driver.find_element_by_xpath('<object xpath>')
                 # Clicks on the load-more button.
                 driver.execute_script("arguments[0].click();", load_more)
-                # driver.find_element_by_xpath('//*[@id="td-outer-wrap"]/div[4]/div/div/div[1]/div/div[*]/a').click()
             except (NoSuchElementException,ElementNotInteractableException):
                 pass
 
             # Checks if date of article is valid.
-            dates = driver.find_elements_by_xpath('//*[@id="td-outer-wrap"]/div[4]/div/div/div[1]/div/div[*]/div[*]/div/div[2]/span/time')
+            dates = driver.find_elements_by_xpath('<object xpath>')
             date = dates[-1].get_attribute('textContent')
             if (re.search('April',date) == None)\
                     and (re.search('February',date) == None)\
@@ -78,14 +77,14 @@ def get_valid_links(links):
                 print(date)
             else:
                 print('reached date cutoff')
-                links = driver.find_elements_by_xpath('//*[@id="td-outer-wrap"]/div[4]/div/div/div[1]/div/div[*]/div[*]/div/h3/a')
+                links = driver.find_elements_by_xpath('<object xpath>')
                 for elem in links:
                     # Write URL to file if date is valid.
-                    if ((re.search('2020/06/30', elem.get_attribute('href')) != None)) or \
-                            ((re.search('2020/07/01', elem.get_attribute('href')) != None)):
-                        print('Writing link to file:',elem.get_attribute('href'))
-                        file = open('valid_links_finalday.txt', 'a+')
-                        file.write(elem.get_attribute('href') + '\n')
+                    if ((re.search('2020/06/30', elem.get_attribute('<object type>')) != None)) or \
+                            ((re.search('2020/07/01', elem.get_attribute('<object type>')) != None)):
+                        print('Writing link to file:',elem.get_attribute('<object type>'))
+                        file = open('<filename.txt>', 'a+')
+                        file.write(elem.get_attribute('<object type>') + '\n')
                         file.close()
                     else:
                         cont = False
@@ -96,13 +95,7 @@ def get_valid_links(links):
 def scrape(all_links, link_num,driver):
 
     # list of keywords to ensure each scraped article is topic-related.
-    keywords = ['coronavirus', 'wuhan', 'virus', 'influenza', 'symptom', 'wuhan virus',
-                'pneumonia', 'covid', 'covid-19', 'movement control order', 'mco', 'emco',
-                'rmo', 'restricted movement order', 'restriction of movement order',
-                'enhanced movement control order', 'ncov', 'n-cov', 'novelcoronavirus',
-                '2019-nCoV', 'flu', 'social distancing', 'hand sanitizer', 'wash hands',
-                'cmco','conditional movement control order','pandemic','koronavirus',
-                'perintah kawalan pergerakan']
+    keywords = [<'list of filter keywords'>]
     newspaper = '<newspaper name>'
     headline_keyword_present = False
     while True:
@@ -112,8 +105,8 @@ def scrape(all_links, link_num,driver):
         # Scrape article headline.
         try:
             # Locate and scrape the headline.
-            headline = driver.find_element_by_class_name('td-post-header')
-            headline = headline.get_attribute('textContent')
+            headline = driver.find_element_by_class_name('<object class name>')
+            headline = headline.get_attribute('<object type>')
 
             # Cleans unwanted symbols, whitespaces and linebreaks. De-capitalizes words.
             headline = headline.strip()
@@ -131,8 +124,8 @@ def scrape(all_links, link_num,driver):
         except (NoSuchElementException,UnicodeEncodeError):
             try:
                 # Re-runs the scraping process with a different locator.
-                headline = driver.find_element_by_css_selector('div.td-post-header > header > h1')
-                headline = headline.get_attribute('textContent')
+                headline = driver.find_element_by_css_selector('<object css selector>')
+                headline = headline.get_attribute('<object type>')
                 headline = headline.strip()
                 headline = re.sub('\\n', '', headline)
                 headline = headline.lower()
@@ -146,14 +139,14 @@ def scrape(all_links, link_num,driver):
             except(NoSuchElementException,UnicodeEncodeError):
                 # Write to error log file.
                 print('headline error')
-                write_to_file('error_links_2.0.txt',all_links[link_num])
+                write_to_file('<filename.txt>',all_links[link_num])
                 link_num+=1
                 continue
 
         # Scrapes article content.
         try:
-            content = driver.find_element_by_class_name('td-post-content')
-            content = content.get_attribute('textContent')
+            content = driver.find_element_by_class_name('<object class name>')
+            content = content.get_attribute('<object type>')
             content = content.lower()
             if headline_keyword_present:
                 print('Headline already has keyword.')
@@ -178,7 +171,7 @@ def scrape(all_links, link_num,driver):
         except (NoSuchElementException, UnicodeEncodeError):
             # Write to error log file.
             print('Does not have keyword.')
-            write_to_file('error_links_2.0.txt', all_links[link_num])
+            write_to_file('<filename.txt>', all_links[link_num])
             link_num += 1
             continue
 
@@ -192,7 +185,7 @@ def scrape(all_links, link_num,driver):
         except (NoSuchElementException,UnicodeEncodeError, IndexError):
             # Write to error log file.
             print('Category error.')
-            write_to_file('error_links_2.0.txt', all_links[link_num])
+            write_to_file('<filename.txt>', all_links[link_num])
             link_num += 1
             continue
 
@@ -206,7 +199,7 @@ def scrape(all_links, link_num,driver):
         except (NoSuchElementException, UnicodeEncodeError):
             # Write to error log file.
             print('Timestamp error.')
-            write_to_file('error_links_2.0.txt', all_links[link_num])
+            write_to_file('<filename.txt>, all_links[link_num])
             link_num += 1
             continue
 
@@ -230,11 +223,11 @@ def scrape(all_links, link_num,driver):
                    "language":language,"category":category,
                    "timestamp":timestamp,"content":content,
                    "government":FromGovernment,"newspaper":newspaper}
-            file = open('content_finalday.txt','a+')
+            file = open('<filename.txt>','a+')
             file.write(str(doc)+'\n')
             file.close()
         except UnicodeEncodeError:
-            write_to_file('error_links_2.0.txt', all_links[link_num])
+            write_to_file('<filename.txt>', all_links[link_num])
 
         link_num += 1
         headline_keyword_present = False
@@ -262,13 +255,7 @@ def send_to_mongodb(content):
     client = pymongo.MongoClient('<connection string>')
     news = client['<db name>']
     articles = news['<collection name>']
-    keywords = ['coronavirus', 'wuhan', 'virus', 'influenza', 'symptom', 'wuhan virus',
-                'pneumonia', 'covid', 'covid-19', 'movement control order', 'mco', 'emco',
-                'rmo', 'restricted movement order', 'restriction of movement order',
-                'enhanced movement control order', 'ncov', 'n-cov', 'novelcoronavirus',
-                '2019-nCoV', 'flu', 'social distancing', 'hand sanitizer', 'wash hands',
-                'cmco', 'conditional movement control order', 'pandemic','koronavirus',
-                'perintah kawalan pergerakan']
+    keywords = ['<list of filter keywords>']
 
     send_DB = False
     bad_docs = []
@@ -285,6 +272,6 @@ def send_to_mongodb(content):
                 send_DB = False
         except SyntaxError:
             bad_docs.append(doc)
-    file = open('bad_links.txt','a+')
+    file = open('<filename.txt>','a+')
     file.writelines(["%s\n" % item for item in bad_docs])
     file.close()
